@@ -16,18 +16,20 @@ public class MakeFriendsCommand implements Command
     @Override
     public void process()
     {
-        if (Database.isNewUser(username1))
+        Database database = Database.getDatabase();
+
+        if (database.isNewUser(username1))
         {
             User user1 = new User(username1);
-            Database.addUser(user1);
+            database.addUser(user1);
         }
 
-        if (Database.isNewUser(username2))
+        if (database.isNewUser(username2))
         {
             User user2 = new User(username2);
-            Database.addUser(user2);
+            database.addUser(user2);
         }
 
-        Database.makeFriends(username1, username2);
+        database.makeFriends(username1, username2);
     }
 }

@@ -14,7 +14,9 @@ public class DelFriendsCommand implements Command
     @Override
     public void process() 
     {
-        Database.deleteFriends(username1, username2);
+        Database database = Database.getDatabase();
+
+        database.deleteFriends(username1, username2);
     }
     
 }
