@@ -6,11 +6,7 @@ import java.io.FileNotFoundException;  // Import this class to handle errors
 import java.io.IOException;
 import java.util.Scanner; // Import the Scanner class to read text files
 
-import javax.xml.crypto.Data;
 
-// This is a simple Java program.
-// FileName : "HelloWorld.java".
- 
 class HelloWorld
 {
     public static void main(String args[])
