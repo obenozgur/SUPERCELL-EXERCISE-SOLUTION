@@ -3,15 +3,15 @@ import java.util.*;
 public class User {
 	private String username;
 	private HashSet<String> friends;
-	private int timestamp;
 	private LinkedHashMap<String, String> values;
+	private LinkedHashMap<String, Integer> valueTimestamps;
 
 	public User(String username)
 	{
 		this.username = username;
 		this.friends = new HashSet<String>(); 
-		this.timestamp = 0;
 		this.values = new LinkedHashMap<String, String>();
+		this.valueTimestamps = new LinkedHashMap<String, Integer>();
 	}
 
 	public String getUsername() 
