@@ -4,21 +4,22 @@ public class User {
 	private String username;
 	private LinkedHashSet<String> friends;
 	private LinkedHashMap<String, String> values;
-	private LinkedHashMap<String, Integer> valueTimestamps;
+	private LinkedHashMap<String, Long> valueTimestamps;
 
 	public User(String username)
 	{
 		this.username = username;
 		this.friends = new LinkedHashSet<String>(); 
 		this.values = new LinkedHashMap<String, String>();
-		this.valueTimestamps = new LinkedHashMap<String, Integer>();
+		this.valueTimestamps = new LinkedHashMap<String, Long>();
 	}
 
-	public User(String username, Integer timestamp, LinkedHashMap<String, String> values)
+	public User(String username, Long timestamp, LinkedHashMap<String, String> values)
 	{
 		this.username = username;
 		this.friends = new LinkedHashSet<String>(); 
 		this.values = values;
+		this.valueTimestamps = new LinkedHashMap<String, Long>();
 
 		for (Map.Entry<String, String> set: values.entrySet())
 		{
@@ -63,7 +64,7 @@ public class User {
 		return friends.size() != 0;
 	}
 
-	public LinkedHashMap<String, String> updateValues(Integer timestamp, LinkedHashMap<String, String> values)
+	public LinkedHashMap<String, String> updateValues(Long timestamp, LinkedHashMap<String, String> values)
 	{
 		LinkedHashMap<String, String> broadcastValueList = new LinkedHashMap<String, String>();
 

@@ -1,20 +1,32 @@
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
 
 import org.json.simple.JSONObject;
 
 public class UpdateCommand implements Command 
 {
     private String username;
-    private Integer timestamp;
+    private Long timestamp;
     private LinkedHashMap<String, String> values;
 
 
     public UpdateCommand(JSONObject jsonObject)
     {
         username = (String) jsonObject.get("user");
-        timestamp = (Integer) jsonObject.get("timestamp");
-        values = (LinkedHashMap<String, String>) jsonObject.get("values");
+        timestamp = (Long) jsonObject.get("timestamp");
+        values = new LinkedHashMap<String, String>();
+
+        Map<String, String> valuesMap = ((Map<String, String>) jsonObject.get("values"));
+
+        for (Map.Entry<String, String> set : valuesMap.entrySet())
+        {
+            String key = set.getKey();
+            String value = set.getValue();
+            values.put(key, value);
+        }
     }
 
     @Override
@@ -44,10 +56,11 @@ public class UpdateCommand implements Command
         LinkedHashSet<String> friends = user.getFriends();
 
         JSONObject broadcast = new JSONObject();
+        List<String> friendsList = new ArrayList<String>(friends);
 
-        broadcast.put("broadcast", friends);
-        broadcast.put("user", user.getUsername());
+        broadcast.put("broadcast", friendsList);
         broadcast.put("timestamp", timestamp);
+        broadcast.put("user", user.getUsername());
         broadcast.put("values", updatedValues);
 
         String broadcastMessage = broadcast.toString();
