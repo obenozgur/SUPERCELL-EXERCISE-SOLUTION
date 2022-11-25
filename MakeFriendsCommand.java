@@ -1,5 +1,3 @@
-import javax.xml.crypto.Data;
-
 import org.json.simple.JSONObject;
 
 public class MakeFriendsCommand implements Command 
