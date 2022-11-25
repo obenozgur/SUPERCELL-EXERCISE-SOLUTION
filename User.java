@@ -2,21 +2,38 @@ import java.util.*;
 
 public class User {
 	private String username;
-	private HashSet<String> friends;
+	private LinkedHashSet<String> friends;
 	private LinkedHashMap<String, String> values;
 	private LinkedHashMap<String, Integer> valueTimestamps;
 
 	public User(String username)
 	{
 		this.username = username;
-		this.friends = new HashSet<String>(); 
+		this.friends = new LinkedHashSet<String>(); 
 		this.values = new LinkedHashMap<String, String>();
 		this.valueTimestamps = new LinkedHashMap<String, Integer>();
+	}
+
+	public User(String username, Integer timestamp, LinkedHashMap<String, String> values)
+	{
+		this.username = username;
+		this.friends = new LinkedHashSet<String>(); 
+		this.values = values;
+
+		for (Map.Entry<String, String> set: values.entrySet())
+		{
+			valueTimestamps.put(set.getKey(), timestamp);
+		}
 	}
 
 	public String getUsername() 
 	{
 		return username;
+	}
+
+	public LinkedHashSet<String> getFriends()
+	{
+		return friends;
 	}
 
 	public boolean equals(Object obj) 
@@ -39,5 +56,37 @@ public class User {
 	public void deleteFriend(String username) 
 	{
 		friends.remove(username);
+	}
+
+	public boolean hasFriends()
+	{
+		return friends.size() != 0;
+	}
+
+	public LinkedHashMap<String, String> updateValues(Integer timestamp, LinkedHashMap<String, String> values)
+	{
+		LinkedHashMap<String, String> broadcastValueList = new LinkedHashMap<String, String>();
+
+		for (Map.Entry<String, String> set: values.entrySet())
+		{
+			String key = set.getKey();
+			String value = set.getValue(); 
+
+			if (!this.values.containsKey(key))
+			{
+				this.values.put(key, value);
+				this.valueTimestamps.put(key, timestamp);
+				broadcastValueList.put(key, value);
+			} else {
+				if (timestamp > valueTimestamps.get(set.getKey()))
+				{
+					this.values.replace(key, value);
+					this.valueTimestamps.replace(key, timestamp);
+					broadcastValueList.put(key, value);
+				}
+			}
+		}
+
+		return broadcastValueList;
 	}
 }
