@@ -2,23 +2,23 @@ import java.util.LinkedHashMap;
 
 public final class Database 
 {
-    private LinkedHashMap<String, User> users;
+    private static LinkedHashMap<String, User> users;
     private static Database database = null;
+
     
     private Database()
     {
         users = new LinkedHashMap<String, User>();
     }
+
+    public static void initialize()
+    {
+        database = new Database();
+    }
     
     public static Database getDatabase()
     {
-        if (database == null)
-        {
-            database = new Database();
-            return database;
-        } else {
-            return database;
-        }
+        return database;
     }
 
     public User getUser(String username)
@@ -37,9 +37,28 @@ public final class Database
         users.replace(user.getUsername(), user);
     }
 
+    public void startUpdate(String username)
+    {
+        User user = users.get(username);
+        user.startUpdate();
+        updateUser(user);
+    }
+
+    public void stopUpdate(String username)
+    {
+        User user = users.get(username);
+        user.stopUpdate();
+        updateUser(user);
+    }
+
     public boolean isNewUser(String username)
     {
         return !users.containsKey(username);
+    }
+
+    public boolean isUserOnUpdate(String username)
+    {
+        return users.get(username).isOnUpdate();
     }
 
     public void makeFriends(String username1, String username2)
