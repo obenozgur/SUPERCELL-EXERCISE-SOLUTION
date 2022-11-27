@@ -1,14 +1,14 @@
-import java.util.LinkedHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class Database 
 {
-    private static LinkedHashMap<String, User> users;
+    private static ConcurrentHashMap<String, User> users;
     private static Database database = null;
 
     
     private Database()
     {
-        users = new LinkedHashMap<String, User>();
+        users = new ConcurrentHashMap<String, User>();
     }
 
     public static void initialize()
@@ -37,29 +37,11 @@ public final class Database
         users.replace(user.getUsername(), user);
     }
 
-    public void startUpdate(String username)
-    {
-        User user = users.get(username);
-        user.startUpdate();
-        updateUser(user);
-    }
-
-    public void stopUpdate(String username)
-    {
-        User user = users.get(username);
-        user.stopUpdate();
-        updateUser(user);
-    }
-
     public boolean isNewUser(String username)
     {
         return !users.containsKey(username);
     }
 
-    public boolean isUserOnUpdate(String username)
-    {
-        return users.get(username).isOnUpdate();
-    }
 
     public void makeFriends(String username1, String username2)
     {

@@ -20,48 +20,34 @@ public class ReceiverThread extends Thread
         {
             File file = new File(filepathString);
             Scanner scanner = new Scanner(file);
-            int counter = 0;
             while (scanner.hasNextLine()) 
             {
                 String line = scanner.nextLine();
                 try
                 {
                     JSONParser jsonParser = new JSONParser();  
-                    JSONObject jsonObject = (JSONObject) jsonParser.parse(line);  
-                    assignCommand(jsonObject);
-                    System.out.println(jsonObject);
-                    counter++;
-                    System.out.println(counter);
-                } catch (ParseException | InterruptedException p) {
+                    JSONObject jsonObject = (JSONObject) jsonParser.parse(line);
+                    if (jsonObject == null)
+                    {
+                        System.out.println("NULL GELDİ");
+                    }
+
+                    String username = (String) jsonObject.get("user");
+                    ThreadManager.tryAddNewUser(username);
+
+                    ThreadManager.lockWrite(ThreadManager.getThreadIndexOfUser(username));
+                    ThreadManager.addCommandToThread(jsonObject);
+                    ThreadManager.unlockWrite(ThreadManager.getThreadIndexOfUser(username));
+                } catch (Exception e) {
                     System.out.println("Parsing error.");
-                    p.printStackTrace();
+                    e.printStackTrace();
                 }   
             }
             scanner.close();
-
-            while (!ThreadManager.areAllThreadsFree()){;}
-        } catch (FileNotFoundException | InterruptedException e) {
+            ThreadManager.receiverEndCycle();
+        } catch (FileNotFoundException e) {
             System.out.println("File not found.");
             e.printStackTrace();
-        }
-    }
-
-    private static void assignCommand(JSONObject jsonObject) throws InterruptedException
-    {
-        while (true)
-        {
-            int availableThreadId = ThreadManager.getAvailableThreadId();
-    
-            if (availableThreadId == -1)
-            {
-                continue;
-            } else {
-                ThreadManager.lockWrite(availableThreadId);
-                ThreadManager.setThreadCommand(availableThreadId, jsonObject);
-                ThreadManager.setThreadBusy(availableThreadId);
-                ThreadManager.unlockWrite(availableThreadId);
-                return;
-            }
         }
     }
 }

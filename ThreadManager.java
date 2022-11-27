@@ -1,35 +1,83 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.simple.JSONObject;
 
 public final class ThreadManager 
 {
-    private static int NUMBER_OF_THREADS = 15;
-
-    private static boolean[] threadStatusArray = new boolean[NUMBER_OF_THREADS];
-    private static JSONObject[] threadCommandArray = new JSONObject[NUMBER_OF_THREADS];
-    private static ArrayList<ReadWriteLock> threadReadWriteLocks;
+    private static AtomicInteger NUMBER_OF_THREADS;
+    private static AtomicBoolean ALL_COMMANDS_READ;
 
     private static ArrayList<UpdaterThread> updaterThreads;
+    private static ArrayList<Queue<JSONObject>> threadCommandQueues;
+    private static ConcurrentHashMap<String, Integer> activeUsersThreadIndex;
+    private static ArrayList<AtomicBoolean> threadCompleteStatus;
+    private static AtomicInteger completedTasks;
+
+    private static ArrayList<ReadWriteLock> threadReadWriteLocks;
+
     private static ReceiverThread receiverThread;
     
     private static ThreadManager threadManager = null;
 
     private ThreadManager(String filepathString)
     {        
-        updaterThreads = new ArrayList<UpdaterThread>();
-        threadReadWriteLocks = new ArrayList<ReadWriteLock>();
+        NUMBER_OF_THREADS = new AtomicInteger();
+        NUMBER_OF_THREADS.set(0);
+        ALL_COMMANDS_READ = new AtomicBoolean();
+        ALL_COMMANDS_READ.set(false);
 
-        for (int i = 0; i < NUMBER_OF_THREADS; i++)
-        {
-            threadStatusArray[i] = false;
-            threadCommandArray[i] = new JSONObject();
-            updaterThreads.add(new UpdaterThread(i));
-            threadReadWriteLocks.add(new ReadWriteLock());
-        }
-        
+        threadCompleteStatus = new ArrayList<AtomicBoolean>();
+
+        updaterThreads = new ArrayList<UpdaterThread>();
         receiverThread = new ReceiverThread(filepathString);
+        threadCommandQueues = new ArrayList<Queue<JSONObject>>();
+        threadReadWriteLocks = new ArrayList<ReadWriteLock>();
+        activeUsersThreadIndex = new ConcurrentHashMap<String, Integer>();
+
+        completedTasks = new AtomicInteger();
+        completedTasks.set(0);
+    }
+
+    public static void incrementTask()
+    {
+        System.out.println(completedTasks.incrementAndGet());
+    }
+
+    public static void printCompletedTasks()
+    {
+        System.out.println(completedTasks.get());
+    }
+
+    public static void receiverEndCycle()
+    {
+        ALL_COMMANDS_READ.set(true);
+        while (!areAllThreadsComplete())
+        {
+            ;
+        }
+        System.out.println("All threads complete");
+        printCompletedTasks();
+    }
+
+    public static boolean areAllThreadsComplete()
+    {
+        for (int i = 0; i < threadCompleteStatus.size(); i++)
+        {
+            if (threadCompleteStatus.get(i).get() == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean areAllCommandsReceived()
+    {
+        return ALL_COMMANDS_READ.get();
     }
 
     public static void initialize(String filepathString)
@@ -39,17 +87,22 @@ public final class ThreadManager
 
     public static void start()
     {
-        try {
-            for (int i = 0; i < NUMBER_OF_THREADS; i++)
-            {
-                updaterThreads.get(i).start();
-                //updaterThreads.get(i).join();
-            }
-            receiverThread.start();
-            receiverThread.join();
-        } catch (InterruptedException e) {
-            // TODO: handle exception
-        }
+        receiverThread.start();
+    }
+
+    public static boolean hasCommands(int threadId) throws InterruptedException
+    {
+        return threadCommandQueues.get(threadId).size() != 0;
+    }
+
+    public static JSONObject peekNextCommand(int threadId)
+    {
+        return threadCommandQueues.get(threadId).peek();
+    }
+
+    public static void completeCommand(int threadId)
+    {
+        threadCommandQueues.get(threadId).remove();
     }
 
     public static ThreadManager getThreadManager()
@@ -57,41 +110,48 @@ public final class ThreadManager
         return threadManager;
     }
 
-    public static JSONObject getThreadCommand(int threadId)
+    public static void initializeThreadForUser(String username)
     {
-        return threadCommandArray[threadId];
+        int currentIndex = NUMBER_OF_THREADS.get();
+        activeUsersThreadIndex.put(username, currentIndex);
+        updaterThreads.add(new UpdaterThread(currentIndex));
+        threadCommandQueues.add(new LinkedList<JSONObject>());
+        threadReadWriteLocks.add(new ReadWriteLock());
+        NUMBER_OF_THREADS.incrementAndGet();
+        threadCompleteStatus.add(new AtomicBoolean());
+        updaterThreads.get(currentIndex).start();
     }
 
-    public static int getAvailableThreadId() throws InterruptedException
+    public static void setThreadStatusComplete(int threadId)
     {
-        for (int i = 0; i < NUMBER_OF_THREADS; i++)
+        threadCompleteStatus.get(threadId).set(true);
+    }
+
+    public static void addCommandToThread(JSONObject command)
+    {
+        int threadIndexOfUser = activeUsersThreadIndex.get((String) command.get("user"));
+        threadCommandQueues.get(threadIndexOfUser).add(command);
+    }
+
+    public static int getThreadIndexOfUser(String username)
+    {
+        return activeUsersThreadIndex.get(username);
+    }
+
+    public static void tryAddNewUser(String username)
+    {
+        if (!isActiveUser(username))
         {
-            lockRead(i);
-            if (threadStatusArray[i] == false)
-            {
-                unlockRead(i);
-                return i;
-            }
-            unlockRead(i);
+            Database database = Database.getDatabase();
+            database.addUser(new User(username));
+            initializeThreadForUser(username);
         }
-
-        return -1;
     }
 
-    public static void setThreadBusy(int threadId)
+    private static boolean isActiveUser(String username)
     {
-        threadStatusArray[threadId] = true;
-    }
-
-    public static void setThreadFree(int threadId)  
-    {
-        threadStatusArray[threadId] = false;
-    }
-
-    public static void setThreadCommand(int threadId, JSONObject command)  
-    {
-        threadCommandArray[threadId] = command;
-    }
+        return activeUsersThreadIndex.containsKey(username); 
+    } 
 
     public static void lockRead(int threadId) throws InterruptedException
     {
@@ -112,25 +172,4 @@ public final class ThreadManager
     {
         threadReadWriteLocks.get(threadId).unlockWrite();
     }
-  
-    public static boolean isThreadBusy(int threadId)
-    {
-        return threadStatusArray[threadId];
-    }
-
-    public static boolean areAllThreadsFree() throws InterruptedException
-    {
-        for (int i = 0; i < NUMBER_OF_THREADS; i++)
-        {
-            lockRead(i);
-            if (isThreadBusy(i))
-            {
-                unlockRead(i);
-                return false;
-            }
-            unlockRead(i);
-        }
-
-        return true;
-    }    
 }

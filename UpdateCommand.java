@@ -12,10 +12,7 @@ public class UpdateCommand implements Command
     private Long timestamp;
     private LinkedHashMap<String, String> values;
 
-    private final static Object USER_ADD_LOCKER = new Object();
-    private final static Object USER_READ_LOCKER = new Object();
-
-
+    
     public UpdateCommand(JSONObject jsonObject)
     {
         username = (String) jsonObject.get("user");
@@ -36,35 +33,10 @@ public class UpdateCommand implements Command
     {
         Database database = Database.getDatabase();
         
-        synchronized (USER_ADD_LOCKER)
-        {
-            if (database.isNewUser(username))
-            {
-                User user = new User(username, timestamp, values);
-                database.addUser(user);
-                return;
-            }  
-        }
-
-        while(true)
-        {
-            synchronized (USER_READ_LOCKER)
-            {
-                if (database.isUserOnUpdate(username))
-                {
-                    continue;
-                }
-                
-                database.startUpdate(username);
-                break;
-            }
-        }
-
         User user = database.getUser(username);
         LinkedHashMap<String, String> updatedValues = user.updateValues(timestamp, values);
         tryBroadcast(user, updatedValues);
         database.updateUser(user);
-        database.stopUpdate(username);
     }
 
     private void tryBroadcast(User user, LinkedHashMap<String, String> updatedValues)

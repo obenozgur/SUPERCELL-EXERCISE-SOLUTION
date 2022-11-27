@@ -7,7 +7,6 @@ public class User {
 	private LinkedHashMap<String, String> values;
 	private LinkedHashMap<String, Long> valueTimestamps;
 
-	private AtomicBoolean onUpdate;
 
 	public User(String username)
 	{
@@ -15,7 +14,6 @@ public class User {
 		this.friends = new LinkedHashSet<String>(); 
 		this.values = new LinkedHashMap<String, String>();
 		this.valueTimestamps = new LinkedHashMap<String, Long>();
-		this.onUpdate = new AtomicBoolean();
 	}
 
 	public User(String username, Long timestamp, LinkedHashMap<String, String> values)
@@ -24,8 +22,6 @@ public class User {
 		this.friends = new LinkedHashSet<String>(); 
 		this.values = values;
 		this.valueTimestamps = new LinkedHashMap<String, Long>();
-		this.onUpdate = new AtomicBoolean();
-		this.onUpdate.set(false);
 
 		for (Map.Entry<String, String> set: values.entrySet())
 		{
@@ -41,21 +37,6 @@ public class User {
 	public LinkedHashSet<String> getFriends()
 	{
 		return friends;
-	}
-
-	public boolean isOnUpdate()
-	{
-		return onUpdate.get();
-	}
-
-	public void startUpdate()
-	{
-		onUpdate.set(true);
-	}
-
-	public void stopUpdate()
-	{
-		onUpdate.set(false);
 	}
 
 	public boolean equals(Object obj) 

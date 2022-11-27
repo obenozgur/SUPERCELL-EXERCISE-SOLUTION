@@ -11,6 +11,21 @@ public class MakeFriendsCommand implements Command
         username2 = (String) jsonObject.get("user2");
     }
 
+    //@Override
+    //public void tryAddNewUser()
+    //{
+        // Database database = Database.getDatabase();
+        // if (database.isNewUser(username1))
+        // {
+        //     database.addUser(new User(username1));
+        // }
+
+        // if (database.isNewUser(username2))
+        // {
+        //     database.addUser(new User(username2));
+        // }
+    //}
+
     @Override
     public void process()
     {
