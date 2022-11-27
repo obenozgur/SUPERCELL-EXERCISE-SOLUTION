@@ -20,6 +20,7 @@ public class ReceiverThread extends Thread
         {
             File file = new File(filepathString);
             Scanner scanner = new Scanner(file);
+            int counter = 0;
             while (scanner.hasNextLine()) 
             {
                 String line = scanner.nextLine();
@@ -28,6 +29,9 @@ public class ReceiverThread extends Thread
                     JSONParser jsonParser = new JSONParser();  
                     JSONObject jsonObject = (JSONObject) jsonParser.parse(line);  
                     assignCommand(jsonObject);
+                    System.out.println(jsonObject);
+                    counter++;
+                    System.out.println(counter);
                 } catch (ParseException | InterruptedException p) {
                     System.out.println("Parsing error.");
                     p.printStackTrace();

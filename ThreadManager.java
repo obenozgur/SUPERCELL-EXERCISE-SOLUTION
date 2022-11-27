@@ -5,7 +5,7 @@ import org.json.simple.JSONObject;
 
 public final class ThreadManager 
 {
-    private static int NUMBER_OF_THREADS = 5;
+    private static int NUMBER_OF_THREADS = 15;
 
     private static boolean[] threadStatusArray = new boolean[NUMBER_OF_THREADS];
     private static JSONObject[] threadCommandArray = new JSONObject[NUMBER_OF_THREADS];
@@ -43,10 +43,10 @@ public final class ThreadManager
             for (int i = 0; i < NUMBER_OF_THREADS; i++)
             {
                 updaterThreads.get(i).start();
-                updaterThreads.get(i).join();
+                //updaterThreads.get(i).join();
             }
             receiverThread.start();
-            //receiverThread.join();
+            receiverThread.join();
         } catch (InterruptedException e) {
             // TODO: handle exception
         }

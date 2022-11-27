@@ -38,7 +38,7 @@ public class UpdaterThread extends Thread
     
                 ThreadManager.lockWrite(threadId);
                 ThreadManager.setThreadFree(threadId);
-                ThreadManager.unlockRead(threadId);
+                ThreadManager.unlockWrite(threadId);
             } catch (InterruptedException | IOException e) {
                 e.printStackTrace();
             }
