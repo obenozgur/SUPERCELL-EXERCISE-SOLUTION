@@ -1,3 +1,0 @@
-{"broadcast":["cd"],"user":"ab","timestamp":100,"values":{"foo":"bar"}}
-{"broadcast":["cd"],"user":"ab","timestamp":101,"values":{"foo":"bar"}}
-{"broadcast":["cd"],"user":"ab","timestamp":102,"values":{"foo":"barf"}}
